@@ -1,44 +1,38 @@
 #include <iostream>
 #include "BucketKNN.hpp"
+#include "Generators.hpp"
 #include "Point.hpp"
 
 
 template<int Dimension>
-std::vector<Point<Dimension>> generate_points(int n_samples);
+const std::vector<Point<Dimension>> generate_points(int n_samples);
 float random_float(float min, float max);
+void test_bucketing();
 
 
 int main(int argc, const char * argv[]) {
-  const int dimension = 5;
-  const int n_samples = 100;
-  int divisions = 10;
-  const std::vector<Point<dimension>> points = generate_points <dimension> (n_samples);;
-  BucketKNN test = BucketKNN(points, divisions);
-  for (int i = 0; i < n_samples; i ++) {
-      std::cout << points[i] << std::endl;
-  }
-  std::cout << "Hello, World!\n";
-  return 0;
+
+    //const std::vector<Point<dimension>> points = generate_points <dimension> (n_samples);
+    //for (int i = 0; i < n_samples; i++) {
+    //    std::cout << points[i] << std::endl;
+    //}
+    test_bucketing();
+
+    return 0;
 }
 
+void test_bucketing() {
+    const int dimension = 2;
+    float min = 0;
+    float max = 99;
+    int n_samples = 10;
+    int k = 2;
+    int divisions = 3;
 
-template<int Dimension>
-std::vector<Point<Dimension>> generate_points(int n_samples) {
-    const int min_range = -100;
-    const int max_range = 100;
-    std::vector<Point<Dimension>> points;
+    std::vector<Point<dimension>> points;
+    UniformGenerator generator = UniformGenerator <dimension> (min, max);
     for (int i = 0; i < n_samples; i++) {
-        std::array<float, Dimension> point;
-        for (int j = 0; j < Dimension; j++) {
-           point[j] = random_float(min_range, max_range);
-        } 
-        Point<Dimension> p{point};
-        points.push_back(p);
+        points.push_back(generator.generatePoint());
     }
-    return points;
-}
-
-
-float random_float(float min, float max) {
-    return (max - min) * ((((float) rand()) / (float) RAND_MAX)) + min;
+    BucketKNN bucket = BucketKNN(points, divisions);
 }
