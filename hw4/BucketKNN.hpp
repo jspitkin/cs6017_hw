@@ -10,63 +10,58 @@ class BucketKNN{
 public:
 
     BucketKNN(const std::vector<Point<Dimension> >& points, int divisions) {
-        
-        // Get the bounds for each dimension
         AABB bounds = getBounds(points);
         mins_ = bounds.mins;
         maxes_ = bounds.maxs;
         divisions_ = divisions;
-
-        // Initialize the buckets
         for (int i = 0; i < std::pow(divisions, Dimension); i++) {
             buckets_.push_back({});
         }
-
-        // Calculate the box size for each dimension
         for (int i = 0; i < Dimension; i++) {
             tile_sizes_[i] = (maxes_[i] - mins_[i]) / divisions;
         }
-
-        // Place the points into the buckets
         for (const Point<Dimension>& p : points) {
-            std::cout << p << std::endl;
+            std::cout << "Adding: " << p << std::endl;
             int index = getIndex(p);
             buckets_[index].push_back(p);
         }
-
-        std::cout << std::endl;
-
     }
   
 
     std::vector<Point<Dimension>> rangeQuery(const Point<Dimension>& p, float radius) const{
-
         std::vector<Point<Dimension>> in_range = {};
-
-        std::cout << "point: " << p << std::endl;
         for (std::vector<Point<Dimension>> bucket : buckets_) {
             AABB<Dimension> bucket_AABB = getBounds(bucket);
             Point<Dimension> closest_point = bucket_AABB.closestInBox(p);
             if (distance(closest_point, p) <= radius) {
                 for (Point<Dimension> point : bucket) {
                     if (distance(point, p) <= radius) {
-                        std::cout << "Distance: " << distance(point, p) << std::endl;
-                        std::cout << "Added:  " << point << std::endl << std::endl;
-                        in_range.push_back(p);
+                        in_range.push_back(point);
                     }
                 }
             }
             
         }
-
         return in_range;
     }
 
 
-    std::vector<Point<Dimension> > KNN(const Point<Dimension>& p, int k) const{
+    std::vector<Point<Dimension>> KNN(const Point<Dimension>& p, int k) const{
+        std::vector<Point<Dimension>> neighbours = {};
+        int radius = 1;
+        while (neighbours.size() < k) {
+            std::vector<Point<Dimension>> query_points = rangeQuery(p, radius);
+            if (query_points.size() >= k) {
+                for (Point<Dimension> n : query_points) {
+                    if (neighbours.size() == k) 
+                        break;
+                    neighbours.push_back(n);
+                }
 
-        return {};
-
+            }
+            radius *= 2;
+        }
+        return neighbours;
     }
 
   

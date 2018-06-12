@@ -30,5 +30,10 @@ void test_bucketing() {
         points.push_back(generator.generatePoint());
     }
     BucketKNN bucket = BucketKNN(points, divisions);
-    bucket.rangeQuery(generator.generatePoint(), 20);
+    Point<dimension> p = generator.generatePoint();
+    std::vector<Point<dimension>> neighbours = bucket.KNN(p, 3);
+    std::cout << "Point: " << p << std::endl;
+    for (Point<dimension> n : neighbours) {
+        std::cout << "Neighbour: " << n << std::endl;
+    }
 }
