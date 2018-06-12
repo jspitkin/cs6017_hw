@@ -10,7 +10,6 @@ class BucketKNN{
 public:
 
     BucketKNN(const std::vector<Point<Dimension> >& points, int divisions) {
-        std::cout << "BucketKNN Init" << std::endl; 
         
         // Get the bounds for each dimension
         AABB bounds = getBounds(points);
@@ -19,9 +18,9 @@ public:
         divisions_ = divisions;
 
         // Initialize the buckets
-        std::vector<std::vector<Point<Dimension>>> 
-            buckets_ (std::pow(divisions, Dimension), std::vector<Point<Dimension>>());
-
+        for (int i = 0; i < std::pow(divisions, Dimension); i++) {
+            buckets_.push_back({});
+        }
 
         // Calculate the box size for each dimension
         for (int i = 0; i < Dimension; i++) {
@@ -30,16 +29,37 @@ public:
 
         // Place the points into the buckets
         for (const Point<Dimension>& p : points) {
+            std::cout << p << std::endl;
             int index = getIndex(p);
-            std::cout << index << std::endl;
             buckets_[index].push_back(p);
         }
+
+        std::cout << std::endl;
+
     }
   
 
-    std::vector<Point<Dimension> > rangeQuery(const Point<Dimension>& p, float radius) const{
+    std::vector<Point<Dimension>> rangeQuery(const Point<Dimension>& p, float radius) const{
 
-        return {};
+        std::vector<Point<Dimension>> in_range = {};
+
+        std::cout << "point: " << p << std::endl;
+        for (std::vector<Point<Dimension>> bucket : buckets_) {
+            AABB<Dimension> bucket_AABB = getBounds(bucket);
+            Point<Dimension> closest_point = bucket_AABB.closestInBox(p);
+            if (distance(closest_point, p) <= radius) {
+                for (Point<Dimension> point : bucket) {
+                    if (distance(point, p) <= radius) {
+                        std::cout << "Distance: " << distance(point, p) << std::endl;
+                        std::cout << "Added:  " << point << std::endl << std::endl;
+                        in_range.push_back(p);
+                    }
+                }
+            }
+            
+        }
+
+        return in_range;
     }
 
 
@@ -58,7 +78,6 @@ private:
     std::array<float, Dimension> mins_;
     std::array<float, Dimension> maxes_;
     std::vector<std::vector<Point<Dimension>>> buckets_; 
-
 
     std::array<int, Dimension> findBucket(const Point<Dimension> p) {
         std::array<int, Dimension> bucket;

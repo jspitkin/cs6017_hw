@@ -11,11 +11,6 @@ void test_bucketing();
 
 
 int main(int argc, const char * argv[]) {
-
-    //const std::vector<Point<dimension>> points = generate_points <dimension> (n_samples);
-    //for (int i = 0; i < n_samples; i++) {
-    //    std::cout << points[i] << std::endl;
-    //}
     test_bucketing();
 
     return 0;
@@ -27,7 +22,7 @@ void test_bucketing() {
     float max = 99;
     int n_samples = 10;
     int k = 2;
-    int divisions = 3;
+    int divisions = 10;
 
     std::vector<Point<dimension>> points;
     UniformGenerator generator = UniformGenerator <dimension> (min, max);
@@ -35,4 +30,5 @@ void test_bucketing() {
         points.push_back(generator.generatePoint());
     }
     BucketKNN bucket = BucketKNN(points, divisions);
+    bucket.rangeQuery(generator.generatePoint(), 20);
 }
