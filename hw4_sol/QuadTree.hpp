@@ -39,8 +39,8 @@ private:
   struct Node{
 
 	bool isLeaf;
-	std::array<std::unique_ptr<Node>, 4> children;
-	std::vector<Point<2> > points;
+	std::array<std::unique_ptr<Node>, 4> children; // Nodes have four children
+	std::vector<Point<2> > points; // Points are 2D
 
 	static constexpr int NW = 0, NE = 1, SW = 2, SE =3;
 	
@@ -48,18 +48,16 @@ private:
 	template<typename Iter>
 	Node(Iter begin, Iter end, int maxSize, AABB<2> aabb){
 
-	  if(end - begin < maxSize){
-		//		std::cout << "leaf of size " << (end - begin) << std::endl;
-		isLeaf = true;
-		points.assign(begin, end);
+	  if(end - begin < maxSize){ // the range of points is less than maxSize
+		isLeaf = true; // This node is a leaf
+		points.assign(begin, end); // add the points from begin to end
 		
 	  } else {
+        // the range of points is greater than maxSize we need to partition them into four nodes
 		isLeaf = false;
 
-		//		std::cout << "internal with " << (end - begin) << std::endl;
-		
-		float xSplit = (aabb.mins[0] + aabb.maxs[0])*0.5;
-		float ySplit = (aabb.mins[1] + aabb.maxs[1])*0.5;
+		float xSplit = (aabb.mins[0] + aabb.maxs[0])*0.5; // Split x-AABB in half
+		float ySplit = (aabb.mins[1] + aabb.maxs[1])*0.5; // Split y-AABB in half
 		
 		//partition by x
 		auto xMiddle = std::partition(begin, end, [xSplit](const Point<2>& p){
@@ -119,6 +117,7 @@ private:
   void rangeQueryRecurse(const std::unique_ptr<Node>& node, const Point<2>& p, float r, AABB<2> aabb,
 	  std::vector<Point<2> >& ret) const{
 
+    // If the node is a leaf, check its points
 	if(node->isLeaf){
 	  for(const auto& x : node->points){
 		if(distance(x, p) < r){
@@ -127,8 +126,8 @@ private:
 	  }
 	} else {
 
-	  float xSplit = (aabb.mins[0] + aabb.maxs[0])*0.5;
-	  float ySplit = (aabb.mins[1] + aabb.maxs[1])*0.5;
+	  float xSplit = (aabb.mins[0] + aabb.maxs[0])*0.5; // Middle X point
+	  float ySplit = (aabb.mins[1] + aabb.maxs[1])*0.5; // Middle Y point
 	  
 	  
 	  if(node->children[Node::NW]){
@@ -137,6 +136,7 @@ private:
 		aabbNW.maxs[0] = xSplit;
 		aabbNW.mins[1] = ySplit;
 
+        // If there is a point in the new box less than radius away from the query point, recurse
 		if(distance(aabbNW.closestInBox(p), p) <= r){ 
 		  rangeQueryRecurse(node->children[Node::NW], p, r, aabbNW, ret);
 		}
@@ -147,6 +147,7 @@ private:
 		aabbNE.mins[0] = xSplit;
 		aabbNE.mins[1] = ySplit;
 
+        // If there is a point in the new box less than radius away from the query point, recurse
 		if(distance(aabbNE.closestInBox(p), p) <= r){
 		  rangeQueryRecurse(node->children[Node::NE], p, r, aabbNE, ret);
 		}
@@ -155,6 +156,8 @@ private:
 		AABB<2> aabbSW = aabb;
 		aabbSW.maxs[0] = xSplit;
 		aabbSW.maxs[1] = ySplit;
+
+        // If there is a point in the new box less than radius away from the query point, recurse
 		if(distance(aabbSW.closestInBox(p), p) <= r){
 		  rangeQueryRecurse(node->children[Node::SW], p, r, aabbSW, ret);
 		}
@@ -164,6 +167,7 @@ private:
 		aabbSE.mins[0] = xSplit;
 		aabbSE.maxs[1] = ySplit;
 		
+        // If there is a point in the new box less than radius away from the query point, recurse
 		if(distance(aabbSE.closestInBox(p), p) <= r){
 		  rangeQueryRecurse(node->children[Node::SE], p, r, aabbSE, ret);
 		  
@@ -179,14 +183,18 @@ private:
 
 	DistanceComparator<2> cmp{p};
 	
+    // If the node is a leaf - update the heap
 	if(node->isLeaf){
 	  for(const auto& x : node->points){
+        // If we need more points - add them
 		if(pQueue.size() < k){
 		  
 		  pQueue.push_back(x);
 		  std::push_heap(pQueue.begin(), pQueue.end(), cmp);
 		  
-		} else if(distance(x, p) < distance(pQueue.front(), p)){
+		} 
+        // Otherwise if they are better than the worst - update the heap
+        else if(distance(x, p) < distance(pQueue.front(), p)){
 		  
 		  std::pop_heap(pQueue.begin(), pQueue.end(), cmp);
 		  pQueue.pop_back();
@@ -195,7 +203,9 @@ private:
 		  
 		}
 	  }
-	} else {
+	} 
+    // Otherwise update the bounding boxes and recurse
+    else {
 
 	  float xSplit = (aabb.mins[0] + aabb.maxs[0])*0.5;
 	  float ySplit = (aabb.mins[1] + aabb.maxs[1])*0.5;
@@ -207,6 +217,7 @@ private:
 		aabbNW.maxs[0] = xSplit;
 		aabbNW.mins[1] = ySplit;
 
+        // If we need more points or there is a better point to be found in the box
 		if(pQueue.size() < k || distance(aabbNW.closestInBox(p), p) <= distance(pQueue.front(), p)){ 
 		  knnRecurse(node->children[Node::NW], p, k, aabbNW, pQueue);
 		}

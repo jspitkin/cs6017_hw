@@ -130,15 +130,12 @@ private:
   }
 
   std::array<int, Dimension> getIndices(const Point<Dimension>& point) const{
-	
-	
 	std::array<int, Dimension> indices;
 	for(int i = 0; i < Dimension; ++i){
 	  indices[i] = std::clamp(static_cast<int>((point[i] - mins[i])/bucketSizes[i]), 0, divisions -1);
 	}
 	return indices;
   }
-
   
   std::array<int, Dimension> firstOffset(const std::array<int, Dimension>& radii) const{
 	std::array<int, Dimension> ret;

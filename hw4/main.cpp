@@ -5,9 +5,6 @@
 #include "Point.hpp"
 
 
-template<int Dimension>
-const std::vector<Point<Dimension>> generate_points(int n_samples);
-float random_float(float min, float max);
 void test_bucketing();
 void test_KDTree();
 
@@ -42,22 +39,34 @@ void test_bucketing() {
 }
 
 void test_KDTree() {
-    const int dimension = 2;
+    const int dimension = 1;
+    int *dim_pointer = (int *) (&dimension);
     float min = 0;
     float max = 99;
-    int n_samples = 1000;
+    int n_samples = 3;
     int k = 2;
 
-    std::vector<Point<dimension>> points;
-    UniformGenerator generator = UniformGenerator <dimension> (min, max);
+    for (int j = 2; j < 5; j++) {
+        std::cout << "Variable: " << dimension << std::endl;
+        std::vector<Point<dimension>> points;
+        UniformGenerator<dimension> generator = UniformGenerator <dimension> (min, max);
+        KDTree tree = KDTree(points);
+        *dim_pointer = j;
+    }
+    return;
+
+    std::vector<Point<1>> points;
+    UniformGenerator<1> generator = UniformGenerator <1> (min, max);
     for (int i = 0; i < n_samples; i++) {
-        points.push_back(generator.generatePoint());
+        Point<dimension> p = generator.generatePoint();
+        points.push_back(p);
     }
-    KDTree tree = KDTree(points);
+    KDTree<1> tree = KDTree<1>(points);
     Point<dimension> p = generator.generatePoint();
-    std::vector<Point<dimension>> neighbours = tree.KNN(p, k);
     std::cout << "Point: " << p << std::endl;
-    for (Point<dimension> n : neighbours) {
-        std::cout << "Neighbour: " << n << std::endl;
-    }
+    //tree.rangeQuery(p, 1);
+    std::vector<Point<dimension>> neighbours = tree.KNN(p, 1);
+    //for (Point<dimension> n : neighbours) {
+    //    std::cout << "Neighbour: " << n << std::endl;
+    //}
 }

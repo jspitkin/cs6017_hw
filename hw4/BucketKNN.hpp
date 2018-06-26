@@ -57,7 +57,6 @@ public:
                         break;
                     neighbours.push_back(n);
                 }
-
             }
             radius *= 2;
         }
